@@ -19,11 +19,11 @@ This project looks at the lead-lag relationship between event based prediction m
 \section{Mathematical Methodology}
 
 \subsection{Probability Extraction from Prediction Markets}
-Prediction markets like Kalshi trade binary contracts which pay \$1 if an event occurs, otherwise \$0. Given the market price $P_K \in [0, 1]$ and assuming risk neutrality under the measure $\mathbb{P}$, the price of a contract for an event $E$ at time $t$ with expiration $T$ is:
+Prediction markets like Kalshi trade binary contracts that pay \$1 if an event occurs, otherwise \$0. Given the market price $P_K \in [0, 1]$ and assuming risk neutrality under the measure $\mathbb{Q}$, the price of a contract for an event $E$ at time $t$ with expiration $T$ is:
 \begin{equation}
-    P_K(t) = e^{-r(T-t)} \mathbb{E}^\mathbb{P} [ \mathbb{I}_E \mid \mathcal{F}_t ]
+    P_K(t) = e^{-r(T-t)} \mathbb{E}^\mathbb{Q} [ \mathbb{I}_E \mid \mathcal{F}_t ]
 \end{equation}
-where $\mathbb{I}_E$ is the indicator function for the event. For index-level targets (e.g., CPI above $x$), Kalshi provides a cumulative distribution. We recover the probability density function (PDF) by differencing adjacent contract thresholds:
+where $\mathbb{I}_E$ is the indicator function for the event. In practice, we treat Kalshi prices as approximately equal to probabilities for short-dated contracts, as the discount factor $e^{-r(T-t)}$ is negligible for near-term event maturities. Kalshi offers threshold contracts that imply a cumulative distribution. We recover the probability density function (PDF) by differencing adjacent contract thresholds, which serves as a discrete approximation of the derivative of the cumulative distribution function (CDF):
 \begin{equation}
     f_K(x) \approx \frac{P_K(X > x) - P_K(X > x + \Delta x)}{\Delta x}
 \end{equation}
@@ -33,7 +33,7 @@ To derive a comparable signal from the traditional options market, we utilize th
 \begin{equation}
     P_{opt} = N(d_2) = N \left( \frac{\ln(S/K) + (r - \sigma^2/2)T}{\sigma\sqrt{T}} \right)
 \end{equation}
-where $\sigma$ is the implied volatility (IV) extracted from the volatility surface. In our empirical analysis, we use the VIX or VIX1D as a proxy for the short-term aggregate IV to measure institutional fear or expectation of a regime shift.
+where $\sigma$ is the implied volatility (IV) extracted from the volatility surface. In our empirical analysis, we use the VIX or VIX1D as a proxy for the short-term aggregate IV to measure institutional fear or expectation of a regime shift. Notably, as VIX is an aggregate volatility index rather than a strike-specific risk-neutral density, it serves as a coarse proxy for our comparisons.
 
 \subsection{The Discrepancy Coefficient ($\lambda$)}
 We define the \textit{Arb Gap} or Discrepancy Coefficient, $\lambda$, as the absolute difference between the Kalshi-implied probability and the options-implied probability:
