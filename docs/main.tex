@@ -4,6 +4,7 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{float}
 
 \title{Probabilistic Discrepancies between Kalshi and Traditional Options}
 \author{William Walz \& Rushil Jaiswal}
@@ -47,6 +48,69 @@ To test whether Kalshi is a leading indicator of market volatility we use a Vect
 \begin{equation}
     Y_t = \alpha + \sum_{i=1}^{p} \beta_i Y_{t-i} + \sum_{j=1}^{p} \gamma_j X_{t-j} + \epsilon_t
 \end{equation}
-The null hypothesis $H_0: \gamma_1 = \gamma_2 = \dots = \gamma_p = 0$ is tested to evaluate whether the prediction market provides unique information prior to the options market "correcting" its volatility pricing.
+The null hypothesis $H_0: \gamma_1 = \gamma_2 = \dots = \gamma_p = 0$ is tested to evaluate whether the prediction market provides unique information prior to the options market ``correcting'' its volatility pricing.
+
+\section{Empirical Results}
+
+\subsection{Unemployment Markets as a Leading Indicator}
+Our primary analysis focused on Kalshi unemployment prediction markets compared against the VIX from January 2025 to January 2026 which totaled in 222 days of overlapping data. We found that Kalshi unemployment probabilities act as an influential indicator of market volatility.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{unemployment_overlay_kalshi_vs_iv.png}
+    \caption{Normalized Time-Series Overlay: Kalshi Unemployment Sentiment vs. VIX. Note the leading movements in the Kalshi signal relative to VIX spikes.}
+    \label{fig:overlay}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{Granger Causality:} The model yielded a p-value of 0.024 at a 2-day lag indicating that prediction market shifts statistically precede movements in the options-implied volatility surface.
+    \item \textbf{Correlation Analysis:} We observed a correlation of -0.152 at a 5-day lag. This inverse relationship suggests that as the probability of a stable or improving unemployment regime increases, the aggregate market fear (VIX) decreases.
+\end{itemize}
+
+\subsection{CPI Markets as a Statistical Control}
+To ensure the robustness of our methodology, we utilized CPI prediction markets as a control group. Due to limited historical depth (only 90 days of overlapping data), the CPI analysis did not yield significant Granger causality. This contrast supports our main finding by proving that the signal in the unemployment markets is a function of increased data maturity and market liquidity rather than a result of arbitrary ``cherry-picking''.
+
+\section{Discussion and Interpretation}
+The 2-day predictive lead suggests that prediction markets respond faster to macroeconomic expectations than institutional options markets. This lends support to our hypothesis that the ``skin in the game'' inherent in Kalshi contracts enables more efficient information aggregation than the complex, frequently over-hedged traditional derivatives market.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{granger_unemployment_pvalues.png}
+    \caption{Granger Causality p-values by Lag. The significant p-value at Lag 2 confirms Kalshi as a leading indicator.}
+    \label{fig:granger}
+\end{figure}
+
+Notably, the negative correlation between unemployment probability and the VIX indicates that prediction markets are gauging economic stability. In this regime, stable employment forecasts act as a volatility suppressor, a signal that prediction markets capture approximately 48 hours before it is reflected in the VIX.
+
+\section{Applications in Asset Pricing and Strategy}
+The empirical lead–lag relationship between Kalshi markets and options-implied volatility suggests several practical uses within the Flow-Risk Sentiment Pricing Engine (FRiSPe). The Discrepancy Coefficient ($\lambda$) measures timing differences between prediction markets and options markets and highlights periods of regime divergence.
+
+\subsection{Regime-Aware Volatility Analysis}
+One implication of the observed 2-day lead is its relevance for volatility-sensitive positioning decisions. Since Kalshi shifts precede VIX movements with a statistically significant p-value of 0.024, a shift in the unemployment probability signal can inform the directional bias of VIX-linked products (e.g., VXX, UVXY, SVXY).
+\begin{itemize}
+    \item \textbf{Anticipatory Risk Management:} If $\lambda$ widens due to a Kalshi-driven spike in unemployment, the signal can inform anticipatory hedging strategies before similar adjustments appear in options-implied volatility.
+    \item \textbf{Signal Filtering and Sentiment Weighting:} A high $\lambda$ may indicate periods where retail-driven sentiment on Kalshi is overextended relative to the volatility surface. In these instances, the discrepancy captures a short-term divergence between prediction-market sentiment and institutional pricing, helping to distinguish transient sentiment shifts from broader regime changes.
+\end{itemize}
+
+\subsection{Flow-Driven Alpha and Regime Timing}
+Using Kalshi prices as a probability proxy provides a timing signal that is less dependent on narrative-driven media sentiment.
+\begin{itemize}
+    \item \textbf{Regime-Based Timing Guidance:} Given the observed 2-day lead, these signals can be used to identify potential regime shifts (e.g., from ``Stable'' to ``Stressed'') prior to their reflection in the broader volatility surface.
+    \item \textbf{Expectation Arbitrage:} The model identifies specific windows where $P_{Kalshi}$ and $P_{Options}$ diverge. This provides a framework to monitor the gap between retail expectations and institutional hedging flows.
+\end{itemize}
+
+\section{Conclusion and Future Work}
+This research successfully establishes a proof-of-concept for utilizing prediction markets as a regime-aware asset pricing tool within the FRiSPe framework. 
+
+\subsection{Limitations}
+The main limitation of this study is the limited historical depth of regulated prediction markets. While the 222-day sample is sufficient for the current analysis, longer time series data will be required to assess performance across different economic cycles.
+
+\subsection{Next Steps}
+Future iterations of this research will focus on:
+\begin{enumerate}
+    \item Expanding the analysis to additional macro indicators (e.g., Fed rate decisions and GDP growth).
+    \item Formally calculating the Arbitrage Coefficient ($\lambda$) to identify specific entry and exit points for volatility-based trades.
+    \item Conducting event-study analyses around high-impact federal releases.
+\end{enumerate}
 
 \end{document}
