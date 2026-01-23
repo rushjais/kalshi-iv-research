@@ -80,7 +80,7 @@ All plots in `outputs/`:
 
 ## Authors
 
-Research by [Your Team]
+Research by William Walz & Rushil Jaiswal
 
 ---
 
