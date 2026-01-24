@@ -14,8 +14,19 @@
 
 \maketitle
 
+\begin{abstract}
+This paper presents a proof-of-concept for the Flow-Risk Sentiment Pricing Engine (FRiSPe) by documenting a lead--lag relationship between prediction markets (Kalshi) and options-implied volatility (VIX). Using 222 days of overlapping unemployment market data from January 2025 to January 2026, we find that changes in Kalshi-implied probabilities statistically precede movements in the VIX by approximately two days ($p = 0.024$). CPI prediction markets, used as a control, do not exhibit similar predictive power, likely due to limited data maturity. These findings suggest that regulated prediction markets may provide a useful early signal for risk management and volatility-based trading strategies.
+\end{abstract}
+
 \section{Introduction}
-This project looks at the lead-lag relationship between event based prediction markets (Kalshi) and standard financial derivatives. Treating Kalshi contracts as binary options makes it possible to extract an implied probability signal to compare it to the risk-neutral density from the volatility surface of the S\&P 500.
+This project looks at the lead-lag relationship between event-based prediction markets (Kalshi) and standard financial derivatives. Treating Kalshi contracts as binary options makes it possible to extract an implied probability signal to compare it to a proxy for options-implied risk-neutral pricing derived from the volatility surface of S\&P 500.
+
+\section{Literature Review}
+Our framework builds on the view that prediction markets are efficient information aggregators. Wolfers and Zitzewitz (2004, 2006) established that binary option prices in these markets generally correspond to the mean beliefs of traders, therefore providing useful estimates of event probabilities.
+
+Recent empirical evidence from the Kalshi exchange by Burgi et al. (2025) confirms that these prices are informative and gain accuracy as markets approach resolution, though they exhibit a ``favorite--longshot bias'' where lower probability outcomes are often overpriced. This bias informs our use of the Discrepancy Coefficient ($\lambda$) to distinguish between fundamental belief shifts and retail-driven noise.
+
+To connect prediction markets with traditional finance, we incorporate ``model-free'' methods for extracting event probabilities from options prices, as demonstrated by Langer and Lemoine (2020). However, Gemmill and Saflekos note that while option-implied distributions reflect market sentiment, they often function as reactive rather than predictive indicators. We therefore examine whether the ``skin in the game'' inherent in prediction markets allows these markets to incorporate information earlier than traditional risk-neutral densities.
 
 \section{Mathematical Methodology}
 
@@ -24,10 +35,12 @@ Prediction markets like Kalshi trade binary contracts that pay \$1 if an event o
 \begin{equation}
     P_K(t) = e^{-r(T-t)} \mathbb{E}^\mathbb{Q} [ \mathbb{I}_E \mid \mathcal{F}_t ]
 \end{equation}
-where $\mathbb{I}_E$ is the indicator function for the event. In practice, we treat Kalshi prices as approximately equal to probabilities for short-dated contracts, as the discount factor $e^{-r(T-t)}$ is negligible for near-term event maturities. Kalshi offers threshold contracts that imply a cumulative distribution. We recover the probability density function (PDF) by differencing adjacent contract thresholds, which serves as a discrete approximation of the derivative of the cumulative distribution function (CDF):
+where $\mathbb{I}_E$ is the indicator function for the event. While prediction market prices do not necessarily reflect a risk-neutral measure in the typical sense, short maturities and limited leverage justify treating them as probability estimates. In practice, we treat Kalshi prices as approximately equal to probabilities for short-dated contracts, as the discount factor $e^{-r(T-t)}$ is negligible for near-term event maturities. Kalshi offers threshold contracts that imply a cumulative distribution. We recover the probability density function (PDF) by differencing adjacent contract thresholds, which serves as a discrete approximation of the derivative of the cumulative distribution function (CDF):
 \begin{equation}
     f_K(x) \approx \frac{P_K(X > x) - P_K(X > x + \Delta x)}{\Delta x}
 \end{equation}
+
+
 
 \subsection{Risk-Neutral Density from Options Markets}
 To derive a comparable signal from the traditional options market, we utilize the Black-Scholes framework. The probability that an option expires in-the-money (the risk-neutral probability) is given by the $N(d_2)$ component:
@@ -37,18 +50,18 @@ To derive a comparable signal from the traditional options market, we utilize th
 where $\sigma$ is the implied volatility (IV) extracted from the volatility surface. In our empirical analysis, we use the VIX or VIX1D as a proxy for the short-term aggregate IV to measure institutional fear or expectation of a regime shift. Notably, as VIX is an aggregate volatility index rather than a strike-specific risk-neutral density, it serves as a coarse proxy for our comparisons.
 
 \subsection{The Discrepancy Coefficient ($\lambda$)}
-We define the \textit{Arb Gap} or Discrepancy Coefficient, $\lambda$, as the absolute difference between the Kalshi-implied probability and the options-implied probability:
+We define the Discrepancy Coefficient, $\lambda$ (referred to internally as the \textit{Arb Gap}), as the absolute difference between the Kalshi-implied probability and the options market signal (proxied by the VIX in our empirical analysis):
 \begin{equation}
     \lambda_t = | P_{Kalshi, t} - P_{Options, t} |
 \end{equation}
-A high $\lambda$ indicates a large gap between retail sentiment and institutional hedging behavior.
+In this context, $\lambda$ represents a sentiment and flow discrepancy between event-specific belief shifts and institutional pricing pressures, rather than a literal arbitrage gap. A high $\lambda$ indicates a divergence between retail sentiment and options market positioning.
 
 \subsection{Lead-Lag Analysis and Granger Causality}
 To test whether Kalshi is a leading indicator of market volatility we use a Vector Autoregression (VAR) model and perform a Granger causality test. We assess whether or not past values of the Kalshi probability signal ($X$) help predict future values of the VIX ($Y$):
 \begin{equation}
     Y_t = \alpha + \sum_{i=1}^{p} \beta_i Y_{t-i} + \sum_{j=1}^{p} \gamma_j X_{t-j} + \epsilon_t
 \end{equation}
-The null hypothesis $H_0: \gamma_1 = \gamma_2 = \dots = \gamma_p = 0$ is tested to evaluate whether the prediction market provides unique information prior to the options market ``correcting'' its volatility pricing.
+The null hypothesis $H_0: \gamma_1 = \gamma_2 = \dots = \gamma_p = 0$ is tested to evaluate whether the prediction market provides unique information prior to the options market ``correcting'' its volatility pricing. This result reflects predictive content in the time series rather than a formal economic causal mechanism.
 
 \section{Empirical Results}
 
@@ -62,13 +75,15 @@ Our primary analysis focused on Kalshi unemployment prediction markets compared 
     \label{fig:overlay}
 \end{figure}
 
+
+
 \begin{itemize}
     \item \textbf{Granger Causality:} The model yielded a p-value of 0.024 at a 2-day lag indicating that prediction market shifts statistically precede movements in the options-implied volatility surface.
     \item \textbf{Correlation Analysis:} We observed a correlation of -0.152 at a 5-day lag. This inverse relationship suggests that as the probability of a stable or improving unemployment regime increases, the aggregate market fear (VIX) decreases.
 \end{itemize}
 
 \subsection{CPI Markets as a Statistical Control}
-To ensure the robustness of our methodology, we utilized CPI prediction markets as a control group. Due to limited historical depth (only 90 days of overlapping data), the CPI analysis did not yield significant Granger causality. This contrast supports our main finding by proving that the signal in the unemployment markets is a function of increased data maturity and market liquidity rather than a result of arbitrary ``cherry-picking''.
+To ensure the robustness of our methodology, we utilized CPI prediction markets as a control group. Due to limited historical depth (only 90 days of overlapping data), the CPI analysis did not yield significant Granger causality. This contrast is consistent with the interpretation that the signal in the unemployment markets is a function of increased data maturity and market liquidity, rather than a result of arbitrary ``cherry-picking''.
 
 \section{Discussion and Interpretation}
 The 2-day predictive lead suggests that prediction markets respond faster to macroeconomic expectations than institutional options markets. This lends support to our hypothesis that the ``skin in the game'' inherent in Kalshi contracts enables more efficient information aggregation than the complex, frequently over-hedged traditional derivatives market.
@@ -80,7 +95,7 @@ The 2-day predictive lead suggests that prediction markets respond faster to mac
     \label{fig:granger}
 \end{figure}
 
-Notably, the negative correlation between unemployment probability and the VIX indicates that prediction markets are gauging economic stability. In this regime, stable employment forecasts act as a volatility suppressor, a signal that prediction markets capture approximately 48 hours before it is reflected in the VIX.
+Notably, the negative correlation between unemployment probability and the VIX indicates that prediction markets are gauging economic stability. In this regime, stable employment forecasts act as a volatility suppressor, a signal that prediction markets reflect a predictive lead of approximately two days before it is manifested in the VIX.
 
 \section{Applications in Asset Pricing and Strategy}
 The empirical lead–lag relationship between Kalshi markets and options-implied volatility suggests several practical uses within the Flow-Risk Sentiment Pricing Engine (FRiSPe). The Discrepancy Coefficient ($\lambda$) measures timing differences between prediction markets and options markets and highlights periods of regime divergence.
@@ -95,8 +110,8 @@ One implication of the observed 2-day lead is its relevance for volatility-sensi
 \subsection{Flow-Driven Alpha and Regime Timing}
 Using Kalshi prices as a probability proxy provides a timing signal that is less dependent on narrative-driven media sentiment.
 \begin{itemize}
-    \item \textbf{Regime-Based Timing Guidance:} Given the observed 2-day lead, these signals can be used to identify potential regime shifts (e.g., from ``Stable'' to ``Stressed'') prior to their reflection in the broader volatility surface.
-    \item \textbf{Expectation Arbitrage:} The model identifies specific windows where $P_{Kalshi}$ and $P_{Options}$ diverge. This provides a framework to monitor the gap between retail expectations and institutional hedging flows.
+    \item \textbf{Regime-Based Timing Guidance:} Given the observed 2-day lead, these signals can be used as risk-aware inputs to identify potential regime shifts prior to their reflection in the broader volatility surface.
+    \item \textbf{Expectation Arbitrage:} The model identifies specific windows where $P_{Kalshi}$ and $P_{Options}$ diverge. This provides a framework to monitor the gap between retail expectations and institutional pricing pressures.
 \end{itemize}
 
 \section{Conclusion and Future Work}
@@ -109,8 +124,15 @@ The main limitation of this study is the limited historical depth of regulated p
 Future iterations of this research will focus on:
 \begin{enumerate}
     \item Expanding the analysis to additional macro indicators (e.g., Fed rate decisions and GDP growth).
-    \item Formally calculating the Arbitrage Coefficient ($\lambda$) to identify specific entry and exit points for volatility-based trades.
+    \item Formally calculating the Arbitrage Coefficient ($\lambda$) to provide enhanced signal conditioning for volatility-based trades.
     \item Conducting event-study analyses around high-impact federal releases.
 \end{enumerate}
+
+\begin{thebibliography}{9}
+\bibitem{wolfers} Wolfers, J., \& Zitzewitz, E. (2006). \textit{Interpreting prediction market prices as probabilities.} Wharton, University of Pennsylvania.
+\bibitem{burgi} Burgi, C., Deng, W., \& Whelan, K. (2025). \textit{Makers and Takers: The Economics of the Kalshi Prediction Market.} University College Dublin.
+\bibitem{langer} Langer, A., \& Lemoine, D. (2020). \textit{What Were the Odds? Estimating the Market’s Probability of Uncertain Events.} University of Arizona Working Paper.
+\bibitem{gemmill} Gemmill, G., \& Saflekos, A. \textit{How Useful are Implied Distributions? Evidence from Stock-Index Options.} LIFFE Research.
+\end{thebibliography}
 
 \end{document}
